@@ -34,10 +34,12 @@ module Enumdate
 
       def forward_to(date)
         @frame_manager.forward_to(date)
+        self
       end
 
       def until(date)
         @until_date = date
+        self
       end
 
       private
