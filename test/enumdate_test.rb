@@ -1,9 +1,74 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "date"
 
 class EnumdateTest < Minitest::Test
   def test_that_it_has_a_version_number
     refute_nil ::Enumdate::VERSION
   end
+
+  def test_date_frame_yearly
+    # FIRST_DATE is an arbitrary date of the first frame.
+    assert_equal Enumdate::DateFrame::Yearly.new(Date.new(2021, 1, 1), 2).lazy.map(&:to_s).take(3).force,
+                 %w[2021-01-01 2023-01-01 2025-01-01]
+    assert_equal Enumdate::DateFrame::Yearly.new(Date.new(2021, 6, 1), 2).lazy.map(&:to_s).take(3).force,
+                 %w[2021-01-01 2023-01-01 2025-01-01]
+  end
+
+  def test_date_frame_monthly
+    assert_equal Enumdate::DateFrame::Monthly.new(Date.new(2021, 6, 10), 2).lazy.map(&:to_s).take(3).force,
+                 %w[2021-06-01 2021-08-01 2021-10-01]
+  end
+
+  def test_date_frame_weekly_is_sensitive_to_wkst
+    # 2021-06-08 is Tuesday:
+    #
+    #      June 2021
+    # Su Mo Tu We Th Fr Sa
+    # 30 31  1  2  3  4  5
+    #  6  7  8  9 10 11 12
+    # 13 14 15 16 17 18 19
+    # 20 21 22 23 24 25 26
+    # 27 28 29 30  1  2  3
+    #
+    mon, tue, wed, june8 = 1, 2, 3, Date.new(2021, 6, 8)
+
+    # Monday (default):
+    assert_equal Enumdate::DateFrame::Weekly.new(june8, 2, mon).lazy.map(&:to_s).take(3).force,
+                 %w[2021-06-07 2021-06-21 2021-07-05]
+    # Tuesday:
+    assert_equal Enumdate::DateFrame::Weekly.new(june8, 2, tue).lazy.map(&:to_s).take(3).force,
+                 %w[2021-06-08 2021-06-22 2021-07-06]
+    # Wednesday:
+    assert_equal Enumdate::DateFrame::Weekly.new(june8, 2, wed).lazy.map(&:to_s).take(3).force,
+                 %w[2021-06-02 2021-06-16 2021-06-30]
+  end
+
+  def test_date_frame_daily
+    assert_equal Enumdate::DateFrame::Daily.new(Date.new(2021, 5, 15), 10).lazy.map(&:to_s).take(3).force,
+                 %w[2021-05-15 2021-05-25 2021-06-04]
+  end
+
+  def test_forward_to_method_jumps_to_specific_date
+    # `forward_to` method is helpful to jump to some specific date before the iteration.
+    assert_equal Enumdate::DateFrame::Yearly.new(Date.new(2021, 1, 1), 2).forward_to(Date.new(2100, 1, 1))
+                                            .lazy.map(&:to_s).take(3).force,
+                 %w[2101-01-01 2103-01-01 2105-01-01]
+    # Let's see how it differs from simply changing FIRST_DATE:
+    assert_equal Enumdate::DateFrame::Yearly.new(Date.new(2100, 1, 1), 2).lazy.map(&:to_s).take(3).force,
+                 %w[2100-01-01 2102-01-01 2104-01-01]
+  end
+
+  def test_enumerator_yearly_by_day; end
+
+  def test_enumerator_yearly_by_monthday; end
+
+  def test_enumerator_monthly_by_day; end
+
+  def test_enumerator_monthly_by_monthday; end
+
+  def test_enumerator_weekly; end
+
+  def test_enumerator_daily; end
 end
