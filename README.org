@@ -1,0 +1,125 @@
+#+TITLE: enumdate -- a small enumerator library to expand recurring dates
+#+AUTHOR: Yoshinari Nomura
+#+EMAIL:
+#+DATE: 2021-08-21
+#+OPTIONS: H:3 num:2 toc:nil
+#+OPTIONS: ^:nil @:t \n:nil ::t |:t f:t TeX:t
+#+OPTIONS: skip:nil
+#+OPTIONS: author:t
+#+OPTIONS: email:nil
+#+OPTIONS: creator:nil
+#+OPTIONS: timestamp:nil
+#+OPTIONS: timestamps:nil
+#+OPTIONS: d:nil
+#+OPTIONS: tags:t
+#+LANGUAGE: ja
+
+[[https://badge.fury.io/rb/enumdate.svg]]
+[[https://github.com/yoshinari-nomura/enumdate/actions/workflows/main.yml/badge.svg]]
+
+** Description
+   Enumdate is a small enumerator library to expand recurring dates.
+
+   You can get the latest version from:
+   + https://github.com/yoshinari-nomura/enumdate
+
+** Examples
+   YearlyByMonthday:
+   #+begin_src ruby
+     # May 5 -- Children's Day (こどもの日 in Japanese)
+     Enumdate::DateEnumerator::YearlyByMonthday
+       .new(first_date: Date.new(1948), month: 5, mday: 5)
+       .lazy.map(&:to_s).take(3).force
+     # => ["1948-05-05", "1949-05-05", "1950-05-05"]
+
+     # Use `forward_to` and `until` to make it finit.
+     Enumdate::DateEnumerator::YearlyByMonthday
+       .new(first_date: Date.new(1948), month: 5, mday: 5)
+       .forward_to(Date.new(2021)) # forward to a specific date
+       .until(Date.new(2023, 12, 31)) # make finit enumerator
+       .map(&:to_s)
+     # => ["2021-05-05", "2022-05-05", "2023-05-05"]
+
+     # Note that the meaning of `forward_to` is different from that of the
+     # `first_date` parameter.  For example, if it has two-years `interval`:
+     Enumdate::DateEnumerator::YearlyByMonthday
+       .new(first_date: Date.new(1948), month: 5, mday: 5, interval: 2)
+       .lazy.map(&:to_s).take(3).force
+     # => ["1948-05-05", "1950-05-05", "1952-05-05"]
+
+     # `forward_to` and `until` clip concrete occurrences without changing
+     # recurring pattern.
+     Enumdate::DateEnumerator::YearlyByMonthday
+       .new(first_date: Date.new(1948), month: 5, mday: 5, interval: 2)
+       .forward_to(Date.new(2021))
+       .lazy.map(&:to_s).take(3).force
+     # => ["2022-05-05", "2024-05-05", "2026-05-05"]
+
+     # If you change first_date:, it will create different pattern:
+     Enumdate::DateEnumerator::YearlyByMonthday
+       .new(first_date: Date.new(2021), month: 5, mday: 5, interval: 2)
+       .lazy.map(&:to_s).take(3).force
+     # => ["2021-05-05", "2023-05-05", "2025-05-05"]
+   #+end_src
+
+   YearlyByDay:
+   #+begin_src ruby
+     # 2nd Mon Oct -- Sports Day (体育の日 in Japanese)
+     monday = 1
+     enum = Enumdate::DateEnumerator::YearlyByDay
+              .new(first_date: Date.new(2000), month: 10, nth: 2, wday: monday)
+
+     enum
+       .forward_to(Date.new(2017))
+       .until(Date.new(2019, 12, 31))
+       .lazy.map(&:to_s).force
+     # => ["2017-10-09", "2018-10-08", "2019-10-14"]
+   #+end_src
+
+   MonthlyByDay, MonthlyByMonthday, Weekly, Daily:
+   #+begin_src ruby
+     fd = Date.new(2021, 8, 12) # = 2nd Thursday August
+
+     Enumdate::DateEnumerator::MonthlyByDay
+       .new(first_date: fd, nth: 2, wday: 4)
+       .lazy.map(&:to_s).take(3).force
+     # => ["2021-08-12", "2021-09-09", "2021-10-14"]
+
+     Enumdate::DateEnumerator::MonthlyByMonthday
+       .new(first_date: fd, mday: 12)
+       .lazy.map(&:to_s).take(3).force
+     # => ["2021-08-12", "2021-09-12", "2021-10-12"]
+
+     # week-start: wkst = 0 (Sunday)
+     Enumdate::DateEnumerator::Weekly
+       .new(first_date: fd, wday: 4, interval: 2, wkst: 0)
+       .lazy.map(&:to_s).take(3).force
+     # => ["2021-08-12", "2021-08-26", "2021-09-09"]
+
+     Enumdate::DateEnumerator::Daily
+       .new(first_date: fd, interval: 3)
+       .lazy.map(&:to_s).take(3).force
+     # => ["2021-08-12", "2021-08-15", "2021-08-18"]
+   #+end_src
+
+** Installation
+   Add this line to your application's Gemfile:
+   #+begin_src ruby
+     gem "enumdate"
+   #+end_src
+
+   And then execute:
+   #+begin_src shell-script
+     $ bundle install
+   #+end_src
+
+   Or install it yourself as:
+   #+begin_src shell-script
+     $ gem install enumdate
+   #+end_src
+
+** Contributing
+   Bug reports and pull requests are welcome on GitHub at https://github.com/yoshinari-nomura/enumdate.
+
+** License
+   The gem is available as open source under the terms of the [[https://opensource.org/licenses/MIT][MIT License]].
