@@ -102,6 +102,19 @@
      # => ["2021-08-12", "2021-08-15", "2021-08-18"]
    #+end_src
 
+   Merge two recurrences:
+   #+begin_src ruby
+     mon = Date.new(2021, 8, 2) # = 1st Monday
+     wed = Date.new(2021, 8, 4) # = 1st Wednesday
+
+     # Every Monday and Wednesday:
+     (Enumdate::EnumMerger.new <<
+      Enumdate::DateEnumerator::Weekly.new(first_date: mon, wday: 1, wkst: 0) <<
+      Enumdate::DateEnumerator::Weekly.new(first_date: wed, wday: 3, wkst: 0))
+     .lazy.map(&:to_s).take(4).force
+     # => ["2021-08-02", "2021-08-04", "2021-08-09", "2021-08-11"]
+   #+end_src
+
 ** Installation
    Add this line to your application's Gemfile:
    #+begin_src ruby

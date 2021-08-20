@@ -29,7 +29,7 @@ module Enumdate
 
     # Add enumerator
     def <<(enumerator)
-      @enumerators << enumerator
+      @enumerators << enumerator.to_enum
       self
     end
 
