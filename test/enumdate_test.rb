@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
-require "test_helper"
 require "date"
+require_relative "test_helper"
 
+# rubocop:disable Metrics/MethodLength
+
+# Test code
 class EnumdateTest < Minitest::Test
   def test_that_it_has_a_version_number
     refute_nil ::Enumdate::VERSION
@@ -10,14 +13,20 @@ class EnumdateTest < Minitest::Test
 
   def test_date_frame_yearly
     # FIRST_DATE is an arbitrary date of the first frame.
-    assert_equal Enumdate::DateFrame::Yearly.new(Date.new(2021, 1, 1), 2).lazy.map(&:to_s).take(3).force,
+    assert_equal Enumdate::DateFrame::Yearly
+                   .new(Date.new(2021, 1, 1), 2)
+                   .lazy.map(&:to_s).take(3).force,
                  %w[2021-01-01 2023-01-01 2025-01-01]
-    assert_equal Enumdate::DateFrame::Yearly.new(Date.new(2021, 6, 1), 2).lazy.map(&:to_s).take(3).force,
+    assert_equal Enumdate::DateFrame::Yearly
+                   .new(Date.new(2021, 6, 1), 2)
+                   .lazy.map(&:to_s).take(3).force,
                  %w[2021-01-01 2023-01-01 2025-01-01]
   end
 
   def test_date_frame_monthly
-    assert_equal Enumdate::DateFrame::Monthly.new(Date.new(2021, 6, 10), 2).lazy.map(&:to_s).take(3).force,
+    assert_equal Enumdate::DateFrame::Monthly
+                   .new(Date.new(2021, 6, 10), 2)
+                   .lazy.map(&:to_s).take(3).force,
                  %w[2021-06-01 2021-08-01 2021-10-01]
   end
 
@@ -35,36 +44,61 @@ class EnumdateTest < Minitest::Test
     mon, tue, wed, june8 = 1, 2, 3, Date.new(2021, 6, 8)
 
     # Monday (default):
-    assert_equal Enumdate::DateFrame::Weekly.new(june8, 2, mon).lazy.map(&:to_s).take(3).force,
+    assert_equal Enumdate::DateFrame::Weekly
+                   .new(june8, 2, mon)
+                   .lazy.map(&:to_s).take(3).force,
                  %w[2021-06-07 2021-06-21 2021-07-05]
     # Tuesday:
-    assert_equal Enumdate::DateFrame::Weekly.new(june8, 2, tue).lazy.map(&:to_s).take(3).force,
+    assert_equal Enumdate::DateFrame::Weekly
+                   .new(june8, 2, tue).lazy.map(&:to_s).take(3).force,
                  %w[2021-06-08 2021-06-22 2021-07-06]
     # Wednesday:
-    assert_equal Enumdate::DateFrame::Weekly.new(june8, 2, wed).lazy.map(&:to_s).take(3).force,
+    assert_equal Enumdate::DateFrame::Weekly
+                   .new(june8, 2, wed).lazy.map(&:to_s).take(3).force,
                  %w[2021-06-02 2021-06-16 2021-06-30]
   end
 
   def test_date_frame_daily
-    assert_equal Enumdate::DateFrame::Daily.new(Date.new(2021, 5, 15), 10).lazy.map(&:to_s).take(3).force,
+    assert_equal Enumdate::DateFrame::Daily
+                   .new(Date.new(2021, 5, 15), 10)
+                   .lazy.map(&:to_s).take(3).force,
                  %w[2021-05-15 2021-05-25 2021-06-04]
   end
 
   def test_forward_to_method_jumps_to_specific_date
     # `forward_to` method is helpful to jump to some specific date before the iteration.
-    assert_equal Enumdate::DateFrame::Yearly.new(Date.new(2021, 1, 1), 2).forward_to(Date.new(2100, 1, 1))
-                                            .lazy.map(&:to_s).take(3).force,
+    assert_equal Enumdate::DateFrame::Yearly
+                   .new(Date.new(2021, 1, 1), 2).forward_to(Date.new(2100, 1, 1))
+                   .lazy.map(&:to_s).take(3).force,
                  %w[2101-01-01 2103-01-01 2105-01-01]
     # Let's see how it differs from simply changing FIRST_DATE:
-    assert_equal Enumdate::DateFrame::Yearly.new(Date.new(2100, 1, 1), 2).lazy.map(&:to_s).take(3).force,
+    assert_equal Enumdate::DateFrame::Yearly
+                   .new(Date.new(2100, 1, 1), 2)
+                   .lazy.map(&:to_s).take(3).force,
                  %w[2100-01-01 2102-01-01 2104-01-01]
   end
 
-  def test_enumerator_yearly_by_day; end
+  def test_enumerator_yearly_by_day
+    # 0:sun, 1:mon, 2:tue, 3:wed, 4:thu, 5:fri, 6:sat
+    assert_equal Enumdate::DateEnumerator::YearlyByDay
+                   .new(first_date: Date.new(2018, 8, 3), month: 8, nth: 1, wday: 5)
+                   .lazy.map(&:to_s).take(3).force,
+                 %w[2018-08-03 2019-08-02 2020-08-07]
+  end
 
-  def test_enumerator_yearly_by_monthday; end
+  def test_enumerator_yearly_by_monthday
+    assert_equal Enumdate::DateEnumerator::YearlyByMonthday
+                   .new(first_date: Date.new(2018, 8, 5), month: 8, mday: 5)
+                   .lazy.map(&:to_s).take(3).force,
+                 %w[2018-08-05 2019-08-05 2020-08-05]
+  end
 
-  def test_enumerator_monthly_by_day; end
+  def test_enumerator_monthly_by_day
+    assert_equal Enumdate::DateEnumerator::MonthlyByDay
+                   .new(first_date: Date.new(2018, 8, 3), nth: 1, wday: 5, interval: 1)
+                   .lazy.map(&:to_s).take(3).force,
+                 %w[2018-08-03 2018-09-07 2018-10-05]
+  end
 
   def test_enumerator_monthly_by_monthday; end
 
@@ -72,3 +106,5 @@ class EnumdateTest < Minitest::Test
 
   def test_enumerator_daily; end
 end
+
+# rubocop:enable Metrics/MethodLength
