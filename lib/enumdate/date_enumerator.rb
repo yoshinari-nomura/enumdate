@@ -10,20 +10,69 @@ module Enumdate
       def initialize(first_date:, interval: 1, wkst: 1)
         @first_date, @interval, @wkst = first_date, interval, wkst
         @frame_manager = frame_manager.new(first_date, interval, wkst)
-        @until_date = nil
+        @duration_begin = first_date
+        @duration_until = nil
       end
 
+      # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       def each
         return enum_for(:each) unless block_given?
 
+        # ~first_date~ value always counts as the first occurrence
+        # even if it does not match the specified rule.
+        # cf. DTSTART vs RRULE in RFC5445.
+        yield @first_date if between_duration?(@first_date)
+
         @frame_manager.each do |frame|
-          date = occurrence_in_frame(frame)
-          next unless date
-          next if date < @first_date
-          break if @until_date && date > @until_date
+          # Avoid inifinit loops even if the rule emits no occurrences
+          # such as "31st April in every year".
+          # (Every ~occurrence_in_frame(frame)~ returns nil)
+          break if @duration_until && @duration_until < frame
+
+          # In some cases, ~occurrence_in_frame~ returns nil.
+          # For example, a recurrence that returns 31st of each month
+          # will return nil for short months such as April and June.
+          next unless (date = occurrence_in_frame(frame))
+
+          break if @duration_until && @duration_until < date
+
+          # ~occurrence_in_frame~ may return a date earlier than
+          # ~first_date~ in the first iteration.  This is because
+          # ~first_date~ does not necessarily follow the repetetion
+          # rule.  For example, if the rule is "every August 1st" and
+          # ~first_date~ is August 15th, The first occurrence calculated
+          # by the rule returns "August 1st", which is earlier than
+          # August 15th. In this context, ~@duration_begin~ is the matter.
+          next if date < @duration_begin
+
+          # Ignore ~first_date~ not to yield twice.
+          next if date == @first_date
 
           yield date
         end
+      end
+      # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+
+      # Set the new beginning of duration for the recurrence rule.
+      #
+      # It also controls the underlying frame manager.  Since the
+      # frame manager is enough smart to avoid unnecessary repetition,
+      # there is no problem in setting the date hundred years later.
+      #
+      # Note that the meaning of calling ~forward_to~ is different
+      # from that of setting the ~first_date~ parameter on creation.
+      # For example, if a yearly event has *two-years* ~interval~:
+      #
+      # 1) if first_date is 2021-08-01 and forward_to 2022-08-01,
+      #      it will create [2021-08-01 2023-08-01 ...]
+      #
+      # 2) if first_date is 2022-08-01,
+      #      it will create [2022-08-01 2024-08-01 ...]
+      #
+      def forward_to(date)
+        @frame_manager.forward_to(date)
+        @duration_begin = date
+        self
       end
 
       # Imprement rewind for Enumrator class
@@ -32,17 +81,18 @@ module Enumdate
         self
       end
 
-      def forward_to(date)
-        @frame_manager.forward_to(date)
-        self
-      end
-
+      # Set the new end of duration for the recurrence rule.
       def until(date)
-        @until_date = date
+        @duration_until = date
         self
       end
 
       private
+
+      def between_duration?(date)
+        (!@duration_begin || @duration_begin <= date) &&
+          (!@duration_until || date <= @duration_until)
+      end
 
       def frame_manager
         raise NotImplementedError
@@ -78,7 +128,7 @@ module Enumdate
     # Enumerate yealy dates by month-day like: Apr 22
     # s, e = Date.new(2021, 1, 1), Date.new(20100, 12, 31)
     # Enumdate::YearlyByMonthday(start_date: s, end_date: e, month: 4, mday: 22, interval: 2).map(&:to_s)
-    # => [2021-04-22, 2023-04-22, ..., 2099-04-22]
+    # : => [2021-04-22, 2023-04-22, ..., 2099-04-22]
     class YearlyByMonthday < Base
       def initialize(first_date:, month:, mday:, interval: 1)
         super(first_date: first_date, interval: interval)
@@ -190,7 +240,7 @@ module Enumdate
 
       def initialize(date_list: [])
         @date_list = date_list
-        @until_date = nil
+        @duration_until = nil
       end
 
       def <<(date)
@@ -200,7 +250,7 @@ module Enumdate
       def rewind; end
 
       def until(date)
-        @until_date = date
+        @duration_until = date
       end
 
       def forward_to(date)
@@ -212,7 +262,7 @@ module Enumdate
 
         @date_list.sort.each do |date|
           next if @fist_date && date < @first_date
-          break if @until_date && date > @until_date
+          break if @duration_until && date > @duration_until
 
           yield date
         end
