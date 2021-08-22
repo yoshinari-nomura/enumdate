@@ -1,6 +1,73 @@
 # frozen_string_literal: true
 
 module Enumdate
+  # SYNOPSIS:
+  # + Enumdate::DateFrame::Yearly.new(first_date, interval)
+  # + Enumdate::DateFrame::Monthly.new(first_date, interval)
+  # + Enumdate::DateFrame::Weekly.new(first_date, interval, wkst)
+  # + Enumdate::DateFrame::Daily.new(first_date, interval)
+  #
+  # Iterate the date in frames of year, month, week, or day,
+  # and enumerate the first date of each frame.
+  #
+  # ~FIRST_DATE~ is an arbitrary date of the first frame.
+  #
+  # #+begin_src ruby
+  # Enumdate::DateFrame::Yearly.new(Date.new(2021, 1, 1), 2).lazy.map(&:to_s).take(3).force
+  # # => ["2021-01-01", "2023-01-01", "2025-01-01"]
+  #
+  # Enumdate::DateFrame::Yearly.new(Date.new(2021, 6, 1), 2).lazy.map(&:to_s).take(3).force
+  # # => ["2021-01-01", "2023-01-01", "2025-01-01"]
+  #
+  # Enumdate::DateFrame::Monthly.new(Date.new(2021, 6, 10), 2).lazy.map(&:to_s).take(3).force
+  # # => ["2021-06-01", "2021-08-01", "2021-10-01"]
+  # #+end_src
+  #
+  # ~Enumdate::DateFrame::Weekly~ is sensitive to ~WKST~ param:
+  #
+  # 2021-06-08 is Tuesday:
+  # #+begin_example
+  #      June 2021
+  # Su Mo Tu We Th Fr Sa
+  # 30 31  1  2  3  4  5
+  #  6  7  8  9 10 11 12
+  # 13 14 15 16 17 18 19
+  # 20 21 22 23 24 25 26
+  # 27 28 29 30  1  2  3
+  # #+end_example
+  #
+  # #+begin_src ruby
+  # sun, mon, tue, wed = 0, 1, 2, 3
+  #
+  # # If week start is Sunday:
+  # Enumdate::DateFrame::Weekly.new(Date.new(2021, 6, 8), 2, sun).lazy.map(&:to_s).take(3).force
+  # # => ["2021-06-06", "2021-06-20", "2021-07-04"]
+  #
+  # # Monday (default):
+  # Enumdate::DateFrame::Weekly.new(Date.new(2021, 6, 8), 2, mon).lazy.map(&:to_s).take(3).force
+  # #  => ["2021-06-07", "2021-06-21", "2021-07-05"]
+  #
+  # # Tuesday:
+  # Enumdate::DateFrame::Weekly.new(Date.new(2021, 6, 8), 2, tue).lazy.map(&:to_s).take(3).force
+  # # => ["2021-06-08", "2021-06-22", "2021-07-06"]
+  #
+  # # Wednesday:
+  # Enumdate::DateFrame::Weekly.new(Date.new(2021, 6, 8), 2, wed).lazy.map(&:to_s).take(3).force
+  # # => ["2021-06-02", "2021-06-16", "2021-06-30"]
+  #
+  # Enumdate::DateFrame::Daily.new(Date.new(2021, 5, 15), 10).lazy.map(&:to_s).take(3).force
+  # # => ["2021-05-15", "2021-05-25", "2021-06-04"]
+  #
+  # # `forward_to` method is helpful to jump to some specific date before the iteration.
+  # Enumdate::DateFrame::Yearly.new(Date.new(2021, 1, 1), 2).forward_to(Date.new(2100, 1, 1))
+  #   .lazy.map(&:to_s).take(3).force
+  # # => ["2101-01-01", "2103-01-01", "2105-01-01"]
+  #
+  # # Let's see how it differs from simply changing FIRST_DATE:
+  # Enumdate::DateFrame::Yearly.new(Date.new(2100, 1, 1), 2).lazy.map(&:to_s).take(3).force
+  # #  => ["2100-01-01", "2102-01-01", "2104-01-01"]
+  # #+end_src
+  #
   module DateFrame
     # DateFrame: yearly, monthly, weekly, and daily
     class Base
@@ -12,68 +79,6 @@ module Enumdate
         rewind
       end
 
-      # SYNOPSIS:
-      #   Enumdate::DateFrame::Yearly.new(first_date, interval)
-      #   Enumdate::DateFrame::Monthly.new(first_date, interval)
-      #   Enumdate::DateFrame::Weekly.new(first_date, interval, wkst)
-      #   Enumdate::DateFrame::Daily.new(first_date, interval)
-      #
-      # Iterate the date in frames of year, month, week, or day,
-      # and enumerate the first date of each frame.
-      #
-      # FIRST_DATE is an arbitrary date of the first frame.
-      #
-      # Enumdate::DateFrame::Yearly.new(Date.new(2021, 1, 1), 2).lazy.map(&:to_s).take(3).force
-      #   => ["2021-01-01", "2023-01-01", "2025-01-01"]
-      #
-      # Enumdate::DateFrame::Yearly.new(Date.new(2021, 6, 1), 2).lazy.map(&:to_s).take(3).force
-      #   => ["2021-01-01", "2023-01-01", "2025-01-01"]
-      #
-      # Enumdate::DateFrame::Monthly.new(Date.new(2021, 6, 10), 2).lazy.map(&:to_s).take(3).force
-      #   => ["2021-06-01", "2021-08-01", "2021-10-01"]
-      #
-      # Enumdate::DateFrame::Weekly is sensitive to WKST param:
-      #
-      # 2021-06-08 is Tuesday:
-      #
-      #      June 2021
-      # Su Mo Tu We Th Fr Sa
-      # 30 31  1  2  3  4  5
-      #  6  7  8  9 10 11 12
-      # 13 14 15 16 17 18 19
-      # 20 21 22 23 24 25 26
-      # 27 28 29 30  1  2  3
-      #
-      # sun, mon, tue, wed = 0, 1, 2, 3
-      #
-      # If week start is Sunday:
-      # Enumdate::DateFrame::Weekly.new(Date.new(2021, 6, 8), 2, sun).lazy.map(&:to_s).take(3).force
-      #   => ["2021-06-06", "2021-06-20", "2021-07-04"]
-      #
-      # Monday (default):
-      # Enumdate::DateFrame::Weekly.new(Date.new(2021, 6, 8), 2, mon).lazy.map(&:to_s).take(3).force
-      #   => ["2021-06-07", "2021-06-21", "2021-07-05"]
-      #
-      # Tuesday:
-      # Enumdate::DateFrame::Weekly.new(Date.new(2021, 6, 8), 2, tue).lazy.map(&:to_s).take(3).force
-      #   => ["2021-06-08", "2021-06-22", "2021-07-06"]
-      #
-      # Wednesday:
-      # Enumdate::DateFrame::Weekly.new(Date.new(2021, 6, 8), 2, wed).lazy.map(&:to_s).take(3).force
-      #   => ["2021-06-02", "2021-06-16", "2021-06-30"]
-      #
-      # Enumdate::DateFrame::Daily.new(Date.new(2021, 5, 15), 10).lazy.map(&:to_s).take(3).force
-      #   => ["2021-05-15", "2021-05-25", "2021-06-04"]
-      #
-      # `forward_to` method is helpful to jump to some specific date before the iteration.
-      # Enumdate::DateFrame::Yearly.new(Date.new(2021, 1, 1), 2).forward_to(Date.new(2100, 1, 1))
-      #   .lazy.map(&:to_s).take(3).force
-      #   => ["2101-01-01", "2103-01-01", "2105-01-01"]
-      #
-      # Let's see how it differs from simply changing FIRST_DATE:
-      # Enumdate::DateFrame::Yearly.new(Date.new(2100, 1, 1), 2).lazy.map(&:to_s).take(3).force
-      #   => ["2100-01-01", "2102-01-01", "2104-01-01"]
-      #
       def each
         return enum_for(:each) unless block_given?
 
