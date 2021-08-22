@@ -63,7 +63,7 @@
     #+end_src
 
     These constructor methods can take more complex parameters
-    such as ~month:~, ~mday:~, ~wday:~, ~nth:~, ~wkst:~.
+    such as ~month:~, ~mday:~, ~wday:~, ~nth:~, ~wkst:~, ~interval:~.
     See the gem document for details.
 
 *** Make finit durations
