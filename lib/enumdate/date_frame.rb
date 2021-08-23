@@ -88,7 +88,7 @@ module Enumdate
         end
       end
 
-      # Imprement rewind for Enumrator class
+      # Implement rewind for Enumerator class
       def rewind
         @current_frame_date = beginning_of_frame(@first_date)
         self

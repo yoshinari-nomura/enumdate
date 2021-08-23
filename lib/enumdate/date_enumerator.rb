@@ -24,7 +24,7 @@ module Enumdate
         yield @first_date if between_duration?(@first_date)
 
         @frame_manager.each do |frame|
-          # Avoid inifinit loops even if the rule emits no occurrences
+          # Avoid infinite loops even if the rule emits no occurrences
           # such as "31st April in every year".
           # (Every ~occurrence_in_frame(frame)~ returns nil)
           break if @duration_until && @duration_until < frame
@@ -38,7 +38,7 @@ module Enumdate
 
           # ~occurrence_in_frame~ may return a date earlier than
           # ~first_date~ in the first iteration.  This is because
-          # ~first_date~ does not necessarily follow the repetetion
+          # ~first_date~ does not necessarily follow the repetition
           # rule.  For example, if the rule is "every August 1st" and
           # ~first_date~ is August 15th, The first occurrence calculated
           # by the rule returns "August 1st", which is earlier than
@@ -75,7 +75,7 @@ module Enumdate
         self
       end
 
-      # Imprement rewind for Enumrator class
+      # Implement rewind for Enumerator class
       def rewind
         @frame_manager.rewind
         self
@@ -104,7 +104,7 @@ module Enumdate
     end
 
     ################################################################
-    # Enumerate yealy dates by day like: Apr 4th Tue
+    # Enumerate yearly dates by day like: Apr 4th Tue
     class YearlyByDay < Base
       def initialize(first_date:, month:, nth:, wday:, interval: 1)
         super(first_date: first_date, interval: interval)
@@ -125,7 +125,7 @@ module Enumdate
     end
 
     ################################################################
-    # Enumerate yealy dates by month-day like: Apr 22
+    # Enumerate yearly dates by month-day like: Apr 22
     # s, e = Date.new(2021, 1, 1), Date.new(20100, 12, 31)
     # Enumdate::YearlyByMonthday(start_date: s, end_date: e, month: 4, mday: 22, interval: 2).map(&:to_s)
     # : => [2021-04-22, 2023-04-22, ..., 2099-04-22]

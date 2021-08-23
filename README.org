@@ -25,7 +25,7 @@
 
 ** How to use
 *** Create enumerables
-    Thease a simple example to create enumerables:
+    These are simple examples to create enumerables:
     #+begin_src ruby
       #      June 2021
       # Su Mo Tu We Th Fr Sa
@@ -66,8 +66,8 @@
     such as ~month:~, ~mday:~, ~wday:~, ~nth:~, ~wkst:~, ~interval:~.
     See the gem document for details.
 
-*** Make finit durations
-    This code makes infinit loop (every two years forever):
+*** Make finite durations
+    This code makes infinite loop (every two years forever):
     #+begin_src ruby
       start = Date.new(2021, 6, 1)
       Enumdate.yearly_by_monthday(start, interval: 2).each do |date|
@@ -90,7 +90,7 @@
         puts date
       end
     #+end_src
-    Rssults:
+    Results:
     : 2023-06-01
     : 2025-06-01
 
@@ -104,7 +104,7 @@
         puts date
       end
     #+end_src
-    Rssults:
+    Results:
     : 2022-01-01
     : 2024-01-01
 

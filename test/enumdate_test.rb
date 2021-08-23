@@ -106,17 +106,17 @@ class EnumdateTest < Minitest::Test
   # even if the first_date does not match the specified rule.
   # This behavior respects RFC5445 (see DTSTART and RRULE).
   def test_enumerator_weekly_counts_first_date_even_not_match_rrule
-    augst2 = Date.new(2021, 8, 2) # first date is Monday
-    augst3 = Date.new(2021, 8, 3)
+    august2 = Date.new(2021, 8, 2) # first date is Monday
+    august3 = Date.new(2021, 8, 3)
 
-    assert_equal Enumdate.weekly(augst2, wday: 2) # even set condition as Tuesday.
+    assert_equal Enumdate.weekly(august2, wday: 2) # even set condition as Tuesday.
                    .lazy.map(&:ymdw).take(3).force,
                  # first_date should be in occurrences.
                  ["2021-08-02 Mon", "2021-08-03 Tue", "2021-08-10 Tue"]
 
     # `forward_to` simply clips the out-of-range occurrences.
-    assert_equal Enumdate.weekly(augst2, wday: 2)
-                   .forward_to(augst3)
+    assert_equal Enumdate.weekly(august2, wday: 2)
+                   .forward_to(august3)
                    .lazy.map(&:ymdw).take(3).force,
                  ["2021-08-03 Tue", "2021-08-10 Tue", "2021-08-17 Tue"]
   end

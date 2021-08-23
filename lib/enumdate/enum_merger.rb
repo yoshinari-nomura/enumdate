@@ -13,7 +13,7 @@ module Enumdate
       @enumerators = []
     end
 
-    # Imprement each for Enumrator class
+    # Implement each for Enumerator class
     def each
       return enum_for(:each) unless block_given?
 
@@ -27,7 +27,7 @@ module Enumdate
       end
     end
 
-    # Imprement rewind for Enumrator class
+    # Implement rewind for Enumerator class
     def rewind
       @enumerators.map(&:rewind)
     end
@@ -45,10 +45,10 @@ module Enumdate
       raise StopIteration if enumerators.empty?
 
       # Could raise StopIteration
-      minimum_enumrator(enumerators).next
+      minimum_enumerator(enumerators).next
     end
 
-    def minimum_enumrator(enumerators)
+    def minimum_enumerator(enumerators)
       min_e, min_v = enumerators.first, nil
       enumerators.each do |e|
         v = e.peek
