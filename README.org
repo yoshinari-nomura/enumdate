@@ -115,13 +115,12 @@
     Sometimes, you may need to compose more complex recurring patterns.
     In this case, you can merge multiple enumerables:
     #+begin_src ruby
-      mon = Date.new(2021, 8, 2) # = 1st Monday
-      wed = Date.new(2021, 8, 4) # = 1st Wednesday
+      first = Date.new(2021, 8, 4) # Wednesday
 
       # Every Monday and Wednesday:
-      (Enumdate::EnumMerger.new << Enumdate.weekly(mon) << Enumdate.weekly(wed))
+      (Enumdate::EnumMerger.new << Enumdate.weekly(first) << Enumdate.weekly(first, wday: 1))
         .lazy.map(&:to_s).take(4).force
-      # => ["2021-08-02", "2021-08-04", "2021-08-09", "2021-08-11"]
+      # => ["2021-08-04", "2021-08-09", "2021-08-11", "2021-08-16"]
     #+end_src
 
 ** Installation

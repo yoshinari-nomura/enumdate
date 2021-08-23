@@ -122,6 +122,16 @@ class EnumdateTest < Minitest::Test
   end
 
   def test_enumerator_daily; end
+
+  def test_enumdate_enum_merger
+    first = Date.new(2021, 8, 4) # Wednesday
+    # Every Monday and Wednesday:
+    assert_equal (Enumdate::EnumMerger.new <<
+                  Enumdate.weekly(first) <<
+                  Enumdate.weekly(first, wday: 1)) # wday: 1 ... Monday
+                   .lazy.map(&:ymdw).take(4).force,
+                 ["2021-08-04 Wed", "2021-08-09 Mon", "2021-08-11 Wed", "2021-08-16 Mon"]
+  end
 end
 
 # rubocop:enable Metrics/MethodLength

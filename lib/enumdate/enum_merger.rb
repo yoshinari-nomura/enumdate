@@ -17,8 +17,13 @@ module Enumdate
     def each
       return enum_for(:each) unless block_given?
 
+      previous, has_valid_previous = nil, false
       loop do
-        yield next_minimum(@enumerators)
+        current = next_minimum(@enumerators)
+        next if has_valid_previous && current == previous
+
+        yield current
+        previous, has_valid_previous = current, true
       end
     end
 
