@@ -14,8 +14,8 @@
 #+OPTIONS: tags:t
 #+LANGUAGE: ja
 
-[[https://badge.fury.io/rb/enumdate.svg]]
-[[https://github.com/yoshinari-nomura/enumdate/actions/workflows/main.yml/badge.svg]]
+[[https://badge.fury.io/rb/enumdate][https://badge.fury.io/rb/enumdate.svg]]
+[[https://github.com/yoshinari-nomura/enumdate/actions][https://github.com/yoshinari-nomura/enumdate/actions/workflows/main.yml/badge.svg]]
 
 ** Description
    Enumdate is a small enumerator library to expand recurring dates.
